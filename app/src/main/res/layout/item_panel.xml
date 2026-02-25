@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <TextView
+        android:id="@+id/txtPanelName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Pannello"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:paddingBottom="6dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/edtBolli"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="N. bolli"
+            android:inputType="number" />
+
+        <Spinner
+            android:id="@+id/spnMisura"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingTop="6dp">
+
+        <CheckBox
+            android:id="@+id/chkAlluminio"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Alluminio (+30%)" />
+
+        <CheckBox
+            android:id="@+id/chkPTP"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="PTP (-30%)" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtPrezzoPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Prezzo pannello: 0 €"
+        android:paddingTop="6dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:alpha="0.2"
+        android:layout_marginTop="10dp" />
+</LinearLayout>

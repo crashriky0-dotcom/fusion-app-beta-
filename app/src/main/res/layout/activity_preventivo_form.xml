@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Scheda Preventivo"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:paddingBottom="12dp" />
+
+        <!-- DATI BASE -->
+        <EditText
+            android:id="@+id/edtCliente"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Cliente" />
+
+        <EditText
+            android:id="@+id/edtTecnico"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Tecnico" />
+
+        <EditText
+            android:id="@+id/edtData"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Data (gg/mm/aaaa)" />
+
+        <EditText
+            android:id="@+id/edtMarca"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Marca" />
+
+        <EditText
+            android:id="@+id/edtModello"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Modello" />
+
+        <EditText
+            android:id="@+id/edtTargaTelaio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Targa o Telaio" />
+
+        <!-- SMONTAGGIO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Smontaggio/Rimontaggio"
+            android:textStyle="bold"
+            android:paddingTop="12dp" />
+
+        <CheckBox
+            android:id="@+id/chkSmontaggio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Includi smontaggio/rimontaggio" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spnCatSmontaggio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false" />
+
+            <EditText
+                android:id="@+id/edtSmontaggioEuro"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:hint="€"
+                android:inputType="number"
+                android:enabled="false" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtHintSmontaggio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="A=90  B=120  C=150  D=200 (modificabile)"
+            android:textSize="12sp" />
+
+        <!-- PANNELLI AUTO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pannelli auto"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <LinearLayout
+            android:id="@+id/panelsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <!-- PREZZO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PREZZO"
+            android:textStyle="bold"
+            android:paddingTop="12dp" />
+
+        <TextView
+            android:id="@+id/txtTotaleConsigliato"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Totale consigliato: 0 €"
+            android:textSize="18sp" />
+
+        <EditText
+            android:id="@+id/edtPrezzoReale"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Prezzo reale €"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/txtScontoEffettivo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sconto effettivo: 0 € (0%)"
+            android:paddingTop="4dp" />
+
+    </LinearLayout>
+</ScrollView>

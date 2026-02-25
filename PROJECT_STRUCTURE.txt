@@ -1,0 +1,81 @@
+LevabolliApp/
+│
+├── app/
+│   ├── src/
+│   │   └── main/
+│   │       ├── java/com/example/levabolliapp/
+│   │       │   ├── MainActivity.kt
+│   │       │   ├── MeasureActivity.kt
+│   │       │   ├── ListinoActivity.kt
+│   │       │   ├── PreventiviActivity.kt
+│   │       │   └── InfoActivity.kt
+│   │       │
+│   │       ├── res/
+│   │       │   ├── layout/
+│   │       │   │   ├── activity_main.xml
+│   │       │   │   ├── activity_measure.xml
+│   │       │   │   ├── activity_listino.xml
+│   │       │   │   ├── activity_preventivi.xml
+│   │       │   │   ├── activity_info.xml
+│   │       │   │   └── dialog_panel.xml
+│   │       │   │
+│   │       │   ├── values/
+│   │       │   │   ├── strings.xml
+│   │       │   │   ├── colors.xml
+│   │       │   │   └── themes.xml
+│   │       │   │
+│   │       │   ├── values-en/strings.xml
+│   │       │   ├── values-de/strings.xml
+│   │       │   ├── values-fr/strings.xml
+│   │       │   ├── values-es/strings.xml
+│   │       │   ├── values-pt/strings.xml
+│   │       │   ├── values-nl/strings.xml
+│   │       │   ├── values-pl/strings.xml
+│   │       │   │
+│   │       │   ├── mipmap-mdpi/
+│   │       │   │   ├── ic_launcher.png
+│   │       │   │   └── ic_launcher_round.png
+│   │       │   │
+│   │       │   ├── mipmap-hdpi/
+│   │       │   │   ├── ic_launcher.png
+│   │       │   │   └── ic_launcher_round.png
+│   │       │   │
+│   │       │   ├── mipmap-xhdpi/
+│   │       │   │   ├── ic_launcher.png
+│   │       │   │   └── ic_launcher_round.png
+│   │       │   │
+│   │       │   ├── mipmap-xxhdpi/
+│   │       │   │   ├── ic_launcher.png
+│   │       │   │   └── ic_launcher_round.png
+│   │       │   │
+│   │       │   └── mipmap-xxxhdpi/
+│   │       │       ├── ic_launcher.png
+│   │       │       └── ic_launcher_round.png
+│   │       │
+│   │       └── AndroidManifest.xml
+│   │
+│   ├── build.gradle
+│   └── proguard-rules.pro
+│
+├── gradle/
+│   └── wrapper/
+│       ├── gradle-wrapper.jar
+│       └── gradle-wrapper.properties
+│
+├── build.gradle
+├── settings.gradle
+├── gradle.properties
+├── gradlew
+├── gradlew.bat
+├── .gitignore
+└── README.md
+
+TOTALE FILE PRINCIPALI:
+- 5 Activity Kotlin
+- 6 Layout XML
+- 8 file strings.xml (multilingua)
+- 10 icone launcher (5 densità × 2 forme)
+- 7 file di configurazione Gradle/Build
+- 1 AndroidManifest.xml
+- 3 file values (strings, colors, themes)
+- 2 file documentazione (README, questo file)
