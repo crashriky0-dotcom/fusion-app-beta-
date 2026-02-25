@@ -54,6 +54,66 @@
             android:layout_height="wrap_content"
             android:hint="Targa o Telaio" />
 
+        <!-- SMONTAGGIO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Smontaggio / Rimontaggio"
+            android:textStyle="bold"
+            android:paddingTop="12dp" />
+
+        <CheckBox
+            android:id="@+id/chkSmontaggio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Includi smontaggio/rimontaggio" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spnCatSmontaggio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false" />
+
+            <EditText
+                android:id="@+id/edtSmontaggioEuro"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:hint="€"
+                android:inputType="numberDecimal"
+                android:enabled="false" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtHintSmontaggio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="A=90€  B=120€  C=150€  D=200€ (modificabile)"
+            android:textSize="12sp"
+            android:paddingTop="4dp" />
+
+        <!-- PANNELLI AUTO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pannelli auto"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <!-- Qui il Kotlin inserisce dinamicamente i pannelli -->
+        <LinearLayout
+            android:id="@+id/panelContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
         <!-- PREZZO -->
         <TextView
             android:layout_width="match_parent"
@@ -76,7 +136,7 @@
             android:hint="Prezzo reale €"
             android:inputType="numberDecimal" />
 
-        <!-- BLOCCO IVA -->
+        <!-- BLOCCO IVA (AppFusion) -->
         <CheckBox
             android:id="@+id/chkIvaCompresa"
             android:layout_width="wrap_content"
