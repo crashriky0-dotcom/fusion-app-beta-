@@ -54,64 +54,6 @@
             android:layout_height="wrap_content"
             android:hint="Targa o Telaio" />
 
-        <!-- SMONTAGGIO -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Smontaggio/Rimontaggio"
-            android:textStyle="bold"
-            android:paddingTop="12dp" />
-
-        <CheckBox
-            android:id="@+id/chkSmontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Includi smontaggio/rimontaggio" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <Spinner
-                android:id="@+id/spnCatSmontaggio"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:enabled="false" />
-
-            <EditText
-                android:id="@+id/edtSmontaggioEuro"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:hint="€"
-                android:inputType="number"
-                android:enabled="false" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/txtHintSmontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="A=90  B=120  C=150  D=200 (modificabile)"
-            android:textSize="12sp" />
-
-        <!-- PANNELLI AUTO -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pannelli auto"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
-
-        <LinearLayout
-            android:id="@+id/panelsContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
-
         <!-- PREZZO -->
         <TextView
             android:layout_width="match_parent"
@@ -132,14 +74,38 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Prezzo reale €"
-            android:inputType="number" />
+            android:inputType="numberDecimal" />
+
+        <!-- BLOCCO IVA -->
+        <CheckBox
+            android:id="@+id/chkIvaCompresa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IVA compresa"
+            android:paddingTop="8dp" />
+
+        <EditText
+            android:id="@+id/edtIvaPercent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="IVA % (default 22)"
+            android:inputType="numberDecimal" />
+
+        <TextView
+            android:id="@+id/txtIvaBreakdown"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Imponibile: 0 € | IVA: 0 € | Totale: 0 €"
+            android:textStyle="bold"
+            android:paddingTop="4dp" />
 
         <TextView
             android:id="@+id/txtScontoEffettivo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Sconto effettivo: 0 € (0%)"
-            android:paddingTop="4dp" />
+            android:paddingTop="8dp" />
 
     </LinearLayout>
+
 </ScrollView>
