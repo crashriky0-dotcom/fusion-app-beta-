@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Impostazioni"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:paddingBottom="12dp"/>
+
+        <EditText
+            android:id="@+id/edtIvaPercent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="IVA % (default 22)"
+            android:inputType="numberDecimal" />
+
+        <CheckBox
+            android:id="@+id/chkIvaInclusaDefault"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IVA compresa di default" />
+
+        <Button
+            android:id="@+id/btnSaveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Salva" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="12dp" />
+
+        <Button
+            android:id="@+id/btnResetListino"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ripristina listino di default" />
+
+    </LinearLayout>
+</ScrollView>

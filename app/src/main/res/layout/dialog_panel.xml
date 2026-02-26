@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/txtPanelName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pannello"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Sezione grandine -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/hail_section"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/edtNumBolli"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="@string/hail_count" />
+
+        <EditText
+            android:id="@+id/edtDiametro"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="@string/hail_max_diameter"
+            android:layout_marginTop="4dp" />
+
+        <CheckBox
+            android:id="@+id/chkAlluminio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/aluminum"
+            android:layout_marginTop="4dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#CCCCCC"
+            android:layout_marginVertical="8dp" />
+
+        <!-- Sezione sportellate -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/door_ding_section"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/edtNumSportellate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="@string/door_ding_count" />
+
+        <EditText
+            android:id="@+id/edtDiametroSportellata"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="numberDecimal"
+            android:hint="@string/door_ding_size_hint"
+            android:layout_marginTop="4dp" />
+
+        <TextView
+            android:id="@+id/txtPrezzoConsigliatoPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/panel_suggested_price_placeholder"
+            android:layout_marginTop="8dp" />
+
+        <EditText
+            android:id="@+id/edtPrezzoApplicatoPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:hint="@string/panel_applied_price_hint"
+            android:layout_marginTop="4dp" />
+
+    </LinearLayout>
+</ScrollView>
