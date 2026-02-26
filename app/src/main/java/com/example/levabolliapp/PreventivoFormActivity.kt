@@ -2,12 +2,12 @@ package com.example.levabolliapp
 
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
-import org.json.JSONObject
-import java.util.*
+import kotlin.math.abs
 
 class PreventivoFormActivity : AppCompatActivity() {
 
@@ -21,22 +21,39 @@ class PreventivoFormActivity : AppCompatActivity() {
     private lateinit var edtPrezzoReale: EditText
     private lateinit var txtScontoEffettivo: TextView
 
+    // Rimontaggio (nullable to avoid crash if the layout isn't updated yet)
+    private var chkRimontaggio: CheckBox? = null
+    private var spnCatRimontaggio: Spinner? = null
+    private var edtRimontaggioEuro: EditText? = null
+
     // IVA views (nullable — in case layout still missing them)
     private var chkIvaCompresa: CheckBox? = null
     private var edtIvaPercent: EditText? = null
     private var txtIvaBreakdown: TextView? = null
 
-    // Settings repo (optional) - used to get default IVA
+    // Settings repo - used to get default IVA
     private lateinit var settings: AppSettings
+
+    // --- Smontaggio/Rimontaggio: gestione consigliato vs manuale ---
+    private var smontaggioManualOverride = false
+    private var rimontaggioManualOverride = false
+    private var lastSmontaggioSuggested = 0.0
+    private var lastRimontaggioSuggested = 0.0
+
+    // Prezzi consigliati A/B/C/D (modifica qui se vuoi)
+    private val opPrezzi = mapOf(
+        "A" to 90.0,
+        "B" to 120.0,
+        "C" to 150.0,
+        "D" to 200.0
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preventivo_form)
 
-        // load settings safely
         settings = AppSettingsRepo.load(this)
 
-        // find views (throws if the mandatory ones are missing)
         chkSmontaggio = findViewById(R.id.chkSmontaggio)
         spnCatSmontaggio = findViewById(R.id.spnCatSmontaggio)
         edtSmontaggioEuro = findViewById(R.id.edtSmontaggioEuro)
@@ -46,69 +63,153 @@ class PreventivoFormActivity : AppCompatActivity() {
         edtPrezzoReale = findViewById(R.id.edtPrezzoReale)
         txtScontoEffettivo = findViewById(R.id.txtScontoEffettivo)
 
-        // IVA optional (may be null if you haven't added the widgets yet)
+        // IVA optional
         chkIvaCompresa = findViewById(R.id.chkIvaCompresa)
         edtIvaPercent = findViewById(R.id.edtIvaPercent)
         txtIvaBreakdown = findViewById(R.id.txtIvaBreakdown)
 
-        // initialize IVA UI defaults
+        // Rimontaggio optional (add these IDs in layout to enable the feature)
+        chkRimontaggio = findViewById(R.id.chkRimontaggio)
+        spnCatRimontaggio = findViewById(R.id.spnCatRimontaggio)
+        edtRimontaggioEuro = findViewById(R.id.edtRimontaggioEuro)
+
+        // IVA defaults
         edtIvaPercent?.setText(settings.ivaPercent.toString())
         chkIvaCompresa?.isChecked = settings.ivaInclusaDefault
 
-        // setup smontaggio spinner example values (A/B/C/D)
-        val smontaggioCats = listOf("A", "B", "C", "D")
-        spnCatSmontaggio.adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            smontaggioCats
-        ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
+        // Setup category spinners (A/B/C/D)
+        val cats = listOf("A", "B", "C", "D")
+        spnCatSmontaggio.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, cats).also {
+            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        spnCatRimontaggio?.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, cats).also {
+            it?.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
 
-        // if you want, default smontaggio euro value (can be changed by user)
+        // Default values
         edtSmontaggioEuro.setText("0")
+        edtRimontaggioEuro?.setText("0")
 
-        // Create some example panel rows to match your UI behaviour:
-        // If previously you loaded them from listino, replace these creation calls
-        // with your existing logic that loads which panels (cofano, parafango, etc.)
-        // Here I add 4 typical panels as placeholder:
+        // Setup smontaggio behavior
+        setupOperationCost(
+            chk = chkSmontaggio,
+            spn = spnCatSmontaggio,
+            edt = edtSmontaggioEuro,
+            getManualOverride = { smontaggioManualOverride },
+            setManualOverride = { smontaggioManualOverride = it },
+            getLastSuggested = { lastSmontaggioSuggested },
+            setLastSuggested = { lastSmontaggioSuggested = it }
+        )
+
+        // Setup rimontaggio behavior (only if IDs exist in layout)
+        if (chkRimontaggio != null && spnCatRimontaggio != null && edtRimontaggioEuro != null) {
+            setupOperationCost(
+                chk = chkRimontaggio!!,
+                spn = spnCatRimontaggio!!,
+                edt = edtRimontaggioEuro!!,
+                getManualOverride = { rimontaggioManualOverride },
+                setManualOverride = { rimontaggioManualOverride = it },
+                getLastSuggested = { lastRimontaggioSuggested },
+                setLastSuggested = { lastRimontaggioSuggested = it }
+            )
+        }
+
+        // Example panel rows (replace with your real panel selection UI)
         val defaultPanels = listOf("Cofano", "Montante", "Parafango", "Porta")
         for (p in defaultPanels) createPanelRow(p)
 
-        // listeners to recalc totals
-        edtPrezzoReale.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { recalcAndShow() }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        edtSmontaggioEuro.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { recalcAndShow() }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-
-        chkSmontaggio.setOnCheckedChangeListener { _, _ -> recalcAndShow() }
+        // Listeners that trigger recalculation
+        edtPrezzoReale.addTextChangedListener(simpleAfterTextChanged { recalcAndShow() })
         chkIvaCompresa?.setOnCheckedChangeListener { _, _ -> recalcAndShow() }
-        edtIvaPercent?.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) { recalcAndShow() }
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
+        edtIvaPercent?.addTextChangedListener(simpleAfterTextChanged { recalcAndShow() })
 
-        // initial calc
+        // Initial calc
         recalcAndShow()
     }
 
-    /**
-     * Creates a panel row and appends to panelContainer.
-     * Each row contains:
-     * - title
-     * - spinner bolli (0..600)
-     * - spinner misura (1/2/3)
-     * - checkbox alluminio (+30%)
-     * - checkbox PTP (-30%)
-     *
-     * This function is safe to call multiple times.
-     */
+    private fun setupOperationCost(
+        chk: CheckBox,
+        spn: Spinner,
+        edt: EditText,
+        getManualOverride: () -> Boolean,
+        setManualOverride: (Boolean) -> Unit,
+        getLastSuggested: () -> Double,
+        setLastSuggested: (Double) -> Unit
+    ) {
+        // Allow typing money values
+        edt.inputType = android.text.InputType.TYPE_CLASS_NUMBER or
+            android.text.InputType.TYPE_NUMBER_FLAG_DECIMAL
+        edt.filters = arrayOf(InputFilter.LengthFilter(8))
+
+        fun applySuggested() {
+            val cat = spn.selectedItem?.toString() ?: "A"
+            val suggested = opPrezzi[cat] ?: 0.0
+            setLastSuggested(suggested)
+
+            if (!getManualOverride()) {
+                edt.setText(if (suggested % 1.0 == 0.0) suggested.toInt().toString() else suggested.toString())
+            }
+        }
+
+        // Initial state
+        spn.isEnabled = chk.isChecked
+        edt.isEnabled = chk.isChecked
+
+        if (!chk.isChecked) {
+            edt.setText("0")
+            setManualOverride(false)
+        } else {
+            setManualOverride(false)
+            applySuggested()
+        }
+
+        chk.setOnCheckedChangeListener { _, isChecked ->
+            spn.isEnabled = isChecked
+            edt.isEnabled = isChecked
+
+            if (!isChecked) {
+                setManualOverride(false)
+                edt.setText("0")
+                recalcAndShow()
+            } else {
+                setManualOverride(false)
+                applySuggested()
+                recalcAndShow()
+            }
+        }
+
+        spn.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!chk.isChecked) return
+                applySuggested()
+                recalcAndShow()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
+
+        edt.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (!chk.isChecked) return
+                val txt = s?.toString()?.trim().orEmpty()
+                val v = txt.replace(",", ".").toDoubleOrNull()
+
+                val suggested = getLastSuggested()
+                setManualOverride(v != null && abs(v - suggested) > 0.001)
+
+                recalcAndShow()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun simpleAfterTextChanged(block: () -> Unit): TextWatcher =
+        object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) = block()
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+
     private fun createPanelRow(nomePannello: String) {
         val ctx = this
 
@@ -124,7 +225,7 @@ class PreventivoFormActivity : AppCompatActivity() {
             setTypeface(null, android.graphics.Typeface.BOLD)
         }
 
-        // Spinner bolli 0..600
+        // Spinner bolli 0..600 (qui poi lo cambiamo in campo scrivibile quando vuoi)
         val spnBolli = Spinner(ctx).apply { id = View.generateViewId() }
         val bolliValues = (0..600).toList()
         val bolliAdapter = ArrayAdapter(ctx, android.R.layout.simple_spinner_item, bolliValues).apply {
@@ -139,26 +240,19 @@ class PreventivoFormActivity : AppCompatActivity() {
             it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         }
 
-        // Checkboxes
         val chkAlluminio = CheckBox(ctx).apply { text = "Alluminio (+30%)" }
         val chkPTP = CheckBox(ctx).apply { text = "PTP (-30%)" }
 
-        // horizontal row for bolli + misura
-        val row = LinearLayout(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL
-        }
+        val row = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL }
         val lp0 = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-        val lpSmall = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         row.addView(spnBolli, lp0)
         row.addView(spnMisura, lp0)
 
-        // add views
         container.addView(title)
         container.addView(row)
         container.addView(chkAlluminio)
         container.addView(chkPTP)
 
-        // on change recalc
         spnBolli.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) { recalcAndShow() }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
@@ -170,16 +264,10 @@ class PreventivoFormActivity : AppCompatActivity() {
         chkAlluminio.setOnCheckedChangeListener { _, _ -> recalcAndShow() }
         chkPTP.setOnCheckedChangeListener { _, _ -> recalcAndShow() }
 
-        // tag the view with an object so we can read values later
         container.tag = PanelTag(nomePannello, spnBolli, spnMisura, chkAlluminio, chkPTP)
-
-        // add to main container
         panelContainer.addView(container)
     }
 
-    /**
-     * Data holder for a panel row
-     */
     private data class PanelTag(
         val name: String,
         val spnBolli: Spinner,
@@ -188,11 +276,7 @@ class PreventivoFormActivity : AppCompatActivity() {
         val chkPTP: CheckBox
     )
 
-    /**
-     * Recalculate total suggested price (netto), IVA breakdown and sconto based on the user-entered "prezzo reale".
-     */
     private fun recalcAndShow() {
-        // sum panels
         var consigliatoNetto = 0.0
 
         for (i in 0 until panelContainer.childCount) {
@@ -200,13 +284,11 @@ class PreventivoFormActivity : AppCompatActivity() {
             val tag = child.tag
             if (tag is PanelTag) {
                 val bolli = (tag.spnBolli.selectedItem as? Int) ?: 0
-                val misuraIdx = tag.spnMisura.selectedItemPosition // 0->misura1,1->misura2...
+                val misuraIdx = tag.spnMisura.selectedItemPosition
                 val isAll = tag.chkAlluminio.isChecked
                 val isPtp = tag.chkPTP.isChecked
 
-                // get base price for this panel using a simple placeholder function
                 var panelPrice = priceFromRules(bolli, misuraIdx + 1)
-
                 if (isAll) panelPrice *= 1.30
                 if (isPtp) panelPrice *= 0.70
 
@@ -214,39 +296,37 @@ class PreventivoFormActivity : AppCompatActivity() {
             }
         }
 
-        // smontaggio
-        val includeSmontaggio = chkSmontaggio.isChecked
-        val smontaggioVal = edtSmontaggioEuro.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-        if (includeSmontaggio) consigliatoNetto += smontaggioVal
+        if (chkSmontaggio.isChecked) {
+            val smontaggioVal = edtSmontaggioEuro.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+            consigliatoNetto += smontaggioVal
+        }
 
-        // show consigliato netto and (optionally) consigliato lordo
+        if (chkRimontaggio?.isChecked == true) {
+            val rimVal = edtRimontaggioEuro?.text?.toString()?.replace(",", ".")?.toDoubleOrNull() ?: 0.0
+            consigliatoNetto += rimVal
+        }
+
         txtTotaleConsigliato.text = "Totale consigliato: ${round2(consigliatoNetto)} €"
 
-        // IVA calculations
         val ivaPercent = edtIvaPercent?.text?.toString()?.replace(",", ".")?.toDoubleOrNull() ?: settings.ivaPercent
         val ivaIncludedChecked = chkIvaCompresa?.isChecked ?: false
 
         val vatResult = if (!ivaIncludedChecked) {
-            // consigliatoNetto is net -> calc gross
             VatCalculator.netToGross(consigliatoNetto, ivaPercent)
         } else {
-            // if user stored consigliato as gross (rare), treat consigliatoNetto as gross for breakdown:
             VatCalculator.grossToNet(consigliatoNetto, ivaPercent)
         }
 
-        // display breakdown if text exists
-        txtIvaBreakdown?.text = "Imponibile: ${vatResult.baseNetto} € | IVA: ${vatResult.iva} € | Totale: ${vatResult.totaleLordo} €"
+        txtIvaBreakdown?.text =
+            "Imponibile: ${vatResult.baseNetto} € | IVA: ${vatResult.iva} € | Totale: ${vatResult.totaleLordo} €"
 
-        // compute sconto: user can insert prezzo reale (either net or gross depending on checkbox)
         val prezzoRealeText = edtPrezzoReale.text.toString().replace(",", ".")
         val prezzoRealeVal = prezzoRealeText.toDoubleOrNull()
 
         val scontoPercent = if (prezzoRealeVal == null || prezzoRealeVal <= 0.0) {
             0.0
         } else {
-            // interpret prezzoRealeVal relative to checkbox:
             val realeNetto = if (ivaIncludedChecked) {
-                // prezzo reale is gross -> convert to netto to compare with consigliatoNetto (which is netto)
                 VatCalculator.grossToNet(prezzoRealeVal, ivaPercent).baseNetto
             } else {
                 prezzoRealeVal
@@ -254,20 +334,10 @@ class PreventivoFormActivity : AppCompatActivity() {
             VatCalculator.discountPercent(consigliatoNetto, realeNetto)
         }
 
-        txtScontoEffettivo.text = "Sconto effettivo: ${prezzoRealeVal?.let { round2(it) } ?: 0.0} € (${round2(scontoPercent)}%)"
-
-        // store last computed values on view tags if needed (not mandatory)
+        txtScontoEffettivo.text =
+            "Sconto effettivo: ${prezzoRealeVal?.let { round2(it) } ?: 0.0} € (${round2(scontoPercent)}%)"
     }
 
-    /**
-     * Placeholder pricing logic:
-     * Replace this with your real listino/range lookup logic (range -> price for misura).
-     * For now: simple heuristic:
-     *  - if bolli == 0 -> price 0
-     *  - else price = bolli * baseFactor * misuraMultiplier
-     *
-     * This function is intentionally local and simple to guarantee compilation and immediate functionality.
-     */
     private fun priceFromRules(bolli: Int, misura: Int): Double {
         if (bolli <= 0) return 0.0
 
@@ -292,48 +362,5 @@ class PreventivoFormActivity : AppCompatActivity() {
         return round2(bolli * baseFactor * misuraMultiplier)
     }
 
-    private fun round2(x: Double): Double = Math.round(x * 100.0) / 100.0
-
-    /**
-     * Save the current preventivo to repository (simple)
-     */
-    private fun savePreventivo() {
-        // read consigliatoNetto by calling recalc logic (we could refactor to return value)
-        // We'll do a cheap recompute similar to recalcAndShow but returning consigliatoNetto:
-        var consigliatoNetto = 0.0
-        for (i in 0 until panelContainer.childCount) {
-            val child = panelContainer.getChildAt(i)
-            val tag = child.tag
-            if (tag is PanelTag) {
-                val bolli = (tag.spnBolli.selectedItem as? Int) ?: 0
-                val misuraIdx = tag.spnMisura.selectedItemPosition
-                var panelPrice = priceFromRules(bolli, misuraIdx + 1)
-                if (tag.chkAlluminio.isChecked) panelPrice *= 1.30
-                if (tag.chkPTP.isChecked) panelPrice *= 0.70
-                consigliatoNetto += panelPrice
-            }
-        }
-        val includeSmontaggio = chkSmontaggio.isChecked
-        val smontaggioVal = edtSmontaggioEuro.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-        if (includeSmontaggio) consigliatoNetto += smontaggioVal
-
-        val prezzoReale = edtPrezzoReale.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-        val ivaPercent = edtIvaPercent?.text?.toString()?.replace(",", ".")?.toDoubleOrNull() ?: settings.ivaPercent
-        val ivaCompresa = chkIvaCompresa?.isChecked ?: false
-
-        val id = PreventivoRepository.newId()
-        val now = System.currentTimeMillis()
-
-        val p = Preventivo(
-            id = id,
-            createdAt = now,
-            consigliatoNetto = round2(consigliatoNetto),
-            prezzoRealeInserito = round2(prezzoReale),
-            ivaPercent = ivaPercent,
-            ivaCompresa = ivaCompresa
-        )
-
-        PreventivoRepository.upsert(this, p)
-        Toast.makeText(this, "Preventivo salvato", Toast.LENGTH_SHORT).show()
-    }
+    private fun round2(x: Double): Double = kotlin.math.round(x * 100.0) / 100.0
 }
