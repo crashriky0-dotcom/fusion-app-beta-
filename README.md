@@ -114,4 +114,4 @@ Progetto didattico/dimostrativo.
 
 ## Autore
 
-Generato da assistente AI su richiesta utente.
+Riccardo rosa 08/08/1989
