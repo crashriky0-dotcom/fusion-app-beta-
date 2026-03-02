@@ -1,199 +1,196 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+package com.example.levabolliapp
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.View
+import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
+import kotlin.math.abs
+import kotlin.math.round
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Scheda Preventivo"
-            android:textSize="28sp"
-            android:textStyle="bold"
-            android:paddingBottom="12dp" />
+class PreventivoFormActivity : AppCompatActivity() {
 
-        <!-- DATI BASE -->
-        <EditText
-            android:id="@+id/edtCliente"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Cliente" />
+    private lateinit var chkSmontaggio: CheckBox
+    private lateinit var spnCatSmontaggio: Spinner
+    private lateinit var edtSmontaggioEuro: EditText
 
-        <EditText
-            android:id="@+id/edtTecnico"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Tecnico" />
+    private lateinit var chkRimontaggio: CheckBox
+    private lateinit var spnCatRimontaggio: Spinner
+    private lateinit var edtRimontaggioEuro: EditText
 
-        <EditText
-            android:id="@+id/edtData"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Data (gg/mm/aaaa)" />
+    private lateinit var panelContainer: LinearLayout
 
-        <EditText
-            android:id="@+id/edtMarca"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Marca" />
+    private lateinit var txtTotaleConsigliato: TextView
+    private lateinit var edtPrezzoReale: EditText
+    private lateinit var txtScontoEffettivo: TextView
 
-        <EditText
-            android:id="@+id/edtModello"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Modello" />
+    // --- OPERAZIONI: gestione consigliato/manuale ---
+    private var smontaggioManualOverride = false
+    private var rimontaggioManualOverride = false
+    private var lastSmontaggioSuggested = 0.0
+    private var lastRimontaggioSuggested = 0.0
 
-        <EditText
-            android:id="@+id/edtTargaTelaio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Targa o Telaio" />
+    // Prezzi consigliati A/B/C/D (stessi per smontaggio e rimontaggio)
+    private val opPrezzi = mapOf(
+        "A" to 90.0,
+        "B" to 120.0,
+        "C" to 150.0,
+        "D" to 200.0
+    )
 
-        <!-- SMONTAGGIO -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Smontaggio / Rimontaggio"
-            android:textStyle="bold"
-            android:paddingTop="12dp" />
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_preventivo_form)
 
-        <CheckBox
-            android:id="@+id/chkSmontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Includi smontaggio/rimontaggio" />
+        chkSmontaggio = findViewById(R.id.chkSmontaggio)
+        spnCatSmontaggio = findViewById(R.id.spnCatSmontaggio)
+        edtSmontaggioEuro = findViewById(R.id.edtSmontaggioEuro)
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        chkRimontaggio = findViewById(R.id.chkRimontaggio)
+        spnCatRimontaggio = findViewById(R.id.spnCatRimontaggio)
+        edtRimontaggioEuro = findViewById(R.id.edtRimontaggioEuro)
 
-            <Spinner
-                android:id="@+id/spnCatSmontaggio"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:enabled="false" />
+        panelContainer = findViewById(R.id.panelContainer)
 
-            <EditText
-                android:id="@+id/edtSmontaggioEuro"
-                android:layout_width="120dp"
-                android:layout_height="wrap_content"
-                android:hint="€"
-                android:inputType="numberDecimal"
-                android:enabled="false" />
-        </LinearLayout>
+        txtTotaleConsigliato = findViewById(R.id.txtTotaleConsigliato)
+        edtPrezzoReale = findViewById(R.id.edtPrezzoReale)
+        txtScontoEffettivo = findViewById(R.id.txtScontoEffettivo)
 
-        <TextView
-            android:id="@+id/txtHintSmontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="A=90€  B=120€  C=150€  D=200€ (modificabile)"
-            android:textSize="12sp"
-            android:paddingTop="4dp" />
+        // Spinner categorie A/B/C/D (per entrambi)
+        val cats = listOf("A", "B", "C", "D")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, cats).also {
+            it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        }
+        spnCatSmontaggio.adapter = adapter
+        spnCatRimontaggio.adapter = adapter
 
-        <!-- PANNELLI AUTO -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pannelli auto"
-            android:textStyle="bold"
-            android:textSize="18sp"
-            android:paddingTop="16dp"
-            android:paddingBottom="8dp" />
+        // Default
+        edtSmontaggioEuro.setText("0")
+        edtRimontaggioEuro.setText("0")
 
-        <!-- CATALOGO PANNELLI (seleziona cosa includere nel preventivo) -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Seleziona pannelli"
-            android:textStyle="bold"
-            android:paddingBottom="6dp" />
+        // Setup SMONTAGGIO
+        setupOperationCost(
+            chk = chkSmontaggio,
+            spn = spnCatSmontaggio,
+            edt = edtSmontaggioEuro,
+            getManualOverride = { smontaggioManualOverride },
+            setManualOverride = { smontaggioManualOverride = it },
+            getLastSuggested = { lastSmontaggioSuggested },
+            setLastSuggested = { lastSmontaggioSuggested = it }
+        )
 
-        <LinearLayout
-            android:id="@+id/panelCatalogContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+        // Setup RIMONTAGGIO
+        setupOperationCost(
+            chk = chkRimontaggio,
+            spn = spnCatRimontaggio,
+            edt = edtRimontaggioEuro,
+            getManualOverride = { rimontaggioManualOverride },
+            setManualOverride = { rimontaggioManualOverride = it },
+            getLastSuggested = { lastRimontaggioSuggested },
+            setLastSuggested = { lastRimontaggioSuggested = it }
+        )
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginBottom="12dp"
-            android:background="#22000000" />
+        // Recalc on prezzo reale changes
+        edtPrezzoReale.addTextChangedListener(simpleAfterTextChanged { recalcAndShow() })
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Pannelli selezionati"
-            android:textStyle="bold"
-            android:paddingBottom="6dp" />
+        recalcAndShow()
+    }
 
-        <!-- Qui il Kotlin inserisce dinamicamente i pannelli -->
-        <LinearLayout
-            android:id="@+id/panelContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical" />
+    private fun setupOperationCost(
+        chk: CheckBox,
+        spn: Spinner,
+        edt: EditText,
+        getManualOverride: () -> Boolean,
+        setManualOverride: (Boolean) -> Unit,
+        getLastSuggested: () -> Double,
+        setLastSuggested: (Double) -> Unit
+    ) {
+        fun applySuggested() {
+            val cat = spn.selectedItem?.toString() ?: "A"
+            val suggested = opPrezzi[cat] ?: 0.0
+            setLastSuggested(suggested)
 
-        <!-- PREZZO -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="PREZZO"
-            android:textStyle="bold"
-            android:paddingTop="12dp" />
+            if (!getManualOverride()) {
+                edt.setText(if (suggested % 1.0 == 0.0) suggested.toInt().toString() else suggested.toString())
+            }
+        }
 
-        <TextView
-            android:id="@+id/txtTotaleConsigliato"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Totale consigliato: 0 €"
-            android:textSize="18sp" />
+        // stato iniziale
+        spn.isEnabled = chk.isChecked
+        edt.isEnabled = chk.isChecked
 
-        <EditText
-            android:id="@+id/edtPrezzoReale"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Prezzo reale €"
-            android:inputType="numberDecimal" />
+        if (!chk.isChecked) {
+            edt.setText("0")
+            setManualOverride(false)
+        } else {
+            setManualOverride(false)
+            applySuggested()
+        }
 
-        <!-- BLOCCO IVA (AppFusion) -->
-        <CheckBox
-            android:id="@+id/chkIvaCompresa"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="IVA compresa"
-            android:paddingTop="8dp" />
+        chk.setOnCheckedChangeListener { _, isChecked ->
+            spn.isEnabled = isChecked
+            edt.isEnabled = isChecked
 
-        <EditText
-            android:id="@+id/edtIvaPercent"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="IVA % (default 22)"
-            android:inputType="numberDecimal" />
+            if (!isChecked) {
+                setManualOverride(false)
+                edt.setText("0")
+            } else {
+                setManualOverride(false)
+                applySuggested()
+            }
 
-        <TextView
-            android:id="@+id/txtIvaBreakdown"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Imponibile: 0 € | IVA: 0 € | Totale: 0 €"
-            android:textStyle="bold"
-            android:paddingTop="4dp" />
+            recalcAndShow()
+        }
 
-        <TextView
-            android:id="@+id/txtScontoEffettivo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sconto effettivo: 0 € (0%)"
-            android:paddingTop="8dp" />
+        spn.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                if (!chk.isChecked) return
+                applySuggested()
+                recalcAndShow()
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
+        }
 
-    </LinearLayout>
+        edt.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (!chk.isChecked) return
 
-</ScrollView>
+                val txt = s?.toString()?.trim().orEmpty()
+                val v = txt.replace(",", ".").toDoubleOrNull()
+                val suggested = getLastSuggested()
+
+                setManualOverride(v != null && abs(v - suggested) > 0.001)
+                recalcAndShow()
+            }
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        })
+    }
+
+    private fun simpleAfterTextChanged(block: () -> Unit): TextWatcher =
+        object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) = block()
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+
+    private fun recalcAndShow() {
+        var totale = 0.0
+
+        if (chkSmontaggio.isChecked) {
+            totale += edtSmontaggioEuro.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+        }
+        if (chkRimontaggio.isChecked) {
+            totale += edtRimontaggioEuro.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+        }
+
+        txtTotaleConsigliato.text = "Totale consigliato: ${round2(totale)} €"
+
+        val prezzoReale = edtPrezzoReale.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+        val sconto = if (totale > 0) ((totale - prezzoReale) / totale) * 100 else 0.0
+        txtScontoEffettivo.text = "Sconto effettivo: ${round2(sconto)}%"
+    }
+
+    private fun round2(x: Double): Double = round(x * 100.0) / 100.0
+}
