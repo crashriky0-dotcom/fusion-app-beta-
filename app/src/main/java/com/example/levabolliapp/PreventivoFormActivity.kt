@@ -2,153 +2,119 @@ package com.example.levabolliapp
 
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.math.abs
-import kotlin.math.round
 
 class PreventivoFormActivity : AppCompatActivity() {
 
+    // --- Dati base ---
+    private lateinit var edtCliente: EditText
+    private lateinit var edtTecnico: EditText
+    private lateinit var edtData: EditText
+    private lateinit var edtMarca: EditText
+    private lateinit var edtModello: EditText
+    private lateinit var edtTargaTelaio: EditText
+
+    // --- Catalogo pannelli selezionabili + container pannelli selezionati ---
+    private lateinit var panelCatalogContainer: LinearLayout
+    private lateinit var panelContainer: LinearLayout
+
+    // --- Smontaggio / Rimontaggio separati ---
     private lateinit var chkSmontaggio: CheckBox
     private lateinit var spnCatSmontaggio: Spinner
     private lateinit var edtSmontaggioEuro: EditText
-    private lateinit var panelContainer: LinearLayout
 
+    private lateinit var chkRimontaggio: CheckBox
+    private lateinit var spnCatRimontaggio: Spinner
+    private lateinit var edtRimontaggioEuro: EditText
+
+    private lateinit var txtHintSmontaggio: TextView
+
+    // --- Prezzi / IVA / Sconto ---
     private lateinit var txtTotaleConsigliato: TextView
     private lateinit var edtPrezzoReale: EditText
     private lateinit var txtScontoEffettivo: TextView
 
-    // --- SMONTAGGIO: gestione consigliato/manuale ---
-    private var smontaggioManualOverride = false
-    private var lastSmontaggioSuggested = 0.0
+    private lateinit var chkIvaCompresa: CheckBox
+    private lateinit var edtIvaPercent: EditText
+    private lateinit var txtIvaBreakdown: TextView
 
-    private val smontaggioPrezzi = mapOf(
+    private lateinit var btnSalvaPreventivo: Button
+
+    // --- Settings ---
+    private val settings by lazy { SettingsRepo(this) }
+    private val preventiviRepo by lazy { PreventiviRepo(this) }
+
+    // Prezzi consigliati A/B/C/D (stessi per smontaggio e rimontaggio)
+    private val opPrezzi = mapOf(
         "A" to 90.0,
         "B" to 120.0,
         "C" to 150.0,
         "D" to 200.0
     )
 
+    // Override manuali
+    private var smontaggioManualOverride = false
+    private var rimontaggioManualOverride = false
+    private var lastSmontaggioSuggested = 0.0
+    private var lastRimontaggioSuggested = 0.0
+
+    // --- Modello pannelli selezionabili (attivabili) ---
+    data class PanelDef(val group: String, val label: String, val key: String)
+
+    // ID “chiave” pannelli (usali come vuoi per salvarli)
+    private val panelCatalog = listOf(
+        // Anteriore
+        PanelDef("Anteriore", "Cofano", "cofano"),
+        PanelDef("Anteriore", "Parafango anteriore SX", "parafango_ant_sx"),
+        PanelDef("Anteriore", "Parafango anteriore DX", "parafango_ant_dx"),
+
+        // Tetto / centrale
+        PanelDef("Centrale", "Tetto", "tetto"),
+        PanelDef("Centrale", "Montante SX", "montante_sx"),
+        PanelDef("Centrale", "Montante DX", "montante_dx"),
+
+        // Lato sinistro
+        PanelDef("Lato sinistro", "Porta anteriore SX", "porta_ant_sx"),
+        PanelDef("Lato sinistro", "Porta posteriore SX", "porta_post_sx"),
+        PanelDef("Lato sinistro", "Parafango posteriore SX", "parafango_post_sx"),
+        PanelDef("Lato sinistro", "Fiancata SX", "fiancata_sx"),
+        PanelDef("Lato sinistro", "Minigonna SX", "minigonna_sx"),
+
+        // Lato destro
+        PanelDef("Lato destro", "Porta anteriore DX", "porta_ant_dx"),
+        PanelDef("Lato destro", "Porta posteriore DX", "porta_post_dx"),
+        PanelDef("Lato destro", "Parafango posteriore DX", "parafango_post_dx"),
+        PanelDef("Lato destro", "Fiancata DX", "fiancata_dx"),
+        PanelDef("Lato destro", "Minigonna DX", "minigonna_dx"),
+
+        // Posteriore
+        PanelDef("Posteriore", "Baule", "baule"),
+        PanelDef("Posteriore", "Baule parte alta", "baule_alta"),
+        PanelDef("Posteriore", "Baule parte bassa", "baule_bassa")
+    )
+
+    // Tag UI pannello selezionato
+    data class PanelTag(
+        val key: String,
+        val label: String,
+        val edtBolli: EditText,
+        val spnMisura: Spinner,
+        val chkAlluminio: CheckBox,
+        val chkPTP: CheckBox
+    )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_preventivo_form)
 
-        chkSmontaggio = findViewById(R.id.chkSmontaggio)
-        spnCatSmontaggio = findViewById(R.id.spnCatSmontaggio)
-        edtSmontaggioEuro = findViewById(R.id.edtSmontaggioEuro)
-        panelContainer = findViewById(R.id.panelContainer)
-
-        txtTotaleConsigliato = findViewById(R.id.txtTotaleConsigliato)
-        edtPrezzoReale = findViewById(R.id.edtPrezzoReale)
-        txtScontoEffettivo = findViewById(R.id.txtScontoEffettivo)
-
-        // Spinner categorie A/B/C/D
-        val cats = listOf("A", "B", "C", "D")
-        spnCatSmontaggio.adapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_item, cats).also {
-                it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            }
-
-        // Stato iniziale
-        spnCatSmontaggio.isEnabled = chkSmontaggio.isChecked
-        edtSmontaggioEuro.isEnabled = chkSmontaggio.isChecked
-        edtSmontaggioEuro.setText("0")
-
-        fun applySmontaggioSuggestedPrice() {
-            val cat = spnCatSmontaggio.selectedItem?.toString() ?: "A"
-            val suggested = smontaggioPrezzi[cat] ?: 0.0
-            lastSmontaggioSuggested = suggested
-
-            if (!smontaggioManualOverride) {
-                edtSmontaggioEuro.setText(
-                    if (suggested % 1.0 == 0.0)
-                        suggested.toInt().toString()
-                    else
-                        suggested.toString()
-                )
-            }
-
-            recalcAndShow()
-        }
-
-        // Checkbox comportamento
-        chkSmontaggio.setOnCheckedChangeListener { _, isChecked ->
-            spnCatSmontaggio.isEnabled = isChecked
-            edtSmontaggioEuro.isEnabled = isChecked
-
-            if (!isChecked) {
-                smontaggioManualOverride = false
-                edtSmontaggioEuro.setText("0")
-            } else {
-                smontaggioManualOverride = false
-                applySmontaggioSuggestedPrice()
-            }
-
-            recalcAndShow()
-        }
-
-        // Cambio categoria
-        spnCatSmontaggio.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    if (!chkSmontaggio.isChecked) return
-                    applySmontaggioSuggestedPrice()
-                }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
-            }
-
-        // Override manuale
-        edtSmontaggioEuro.addTextChangedListener(object : TextWatcher {
-            override fun afterTextChanged(s: Editable?) {
-                if (!chkSmontaggio.isChecked) return
-
-                val txt = s?.toString()?.trim().orEmpty()
-                val value = txt.replace(",", ".").toDoubleOrNull()
-
-                smontaggioManualOverride =
-                    (value != null && abs(value - lastSmontaggioSuggested) > 0.001)
-
-                recalcAndShow()
-            }
-
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-        })
-    }
-
-    private fun recalcAndShow() {
-
-        var totale = 0.0
-
-        if (chkSmontaggio.isChecked) {
-            val smontaggio =
-                edtSmontaggioEuro.text.toString().replace(",", ".").toDoubleOrNull()
-                    ?: 0.0
-            totale += smontaggio
-        }
-
-        txtTotaleConsigliato.text =
-            "Totale consigliato: ${round2(totale)} €"
-
-        val prezzoReale =
-            edtPrezzoReale.text.toString().replace(",", ".").toDoubleOrNull()
-                ?: 0.0
-
-        val sconto =
-            if (totale > 0) ((totale - prezzoReale) / totale) * 100 else 0.0
-
-        txtScontoEffettivo.text =
-            "Sconto effettivo: ${round2(sconto)}%"
-    }
-
-    private fun round2(x: Double): Double =
-        round(x * 100.0) / 100.0
-}
+        // Dati base
+        edtCliente = findViewById(R.id.edtCliente)
+        edtTecnico = findViewById(R.id.edtTecnico)
+        edtData = findViewById(R.id.edtData)
+        edtMarca = findViewById(R.id.edtMarca)
+        edtModello = findViewById(R.id.edtModello)
