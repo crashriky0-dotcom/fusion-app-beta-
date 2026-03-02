@@ -9,105 +9,72 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- TITOLO -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Scheda Preventivo"
-            android:textSize="24sp"
+            android:textSize="28sp"
             android:textStyle="bold"
             android:paddingBottom="12dp" />
 
-        <!-- ===================== -->
-        <!-- SMONTAGGIO -->
-        <!-- ===================== -->
-
-        <TextView
+        <!-- DATI BASE -->
+        <EditText
+            android:id="@+id/edtCliente"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Smontaggio"
-            android:textStyle="bold"
-            android:paddingTop="12dp"
-            android:paddingBottom="8dp" />
-
-        <CheckBox
-            android:id="@+id/chkSmontaggio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Includi smontaggio" />
-
-        <Spinner
-            android:id="@+id/spnCatSmontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:enabled="false" />
+            android:hint="Cliente" />
 
         <EditText
-            android:id="@+id/edtSmontaggioEuro"
+            android:id="@+id/edtTecnico"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
-            android:hint="€ Smontaggio"
-            android:inputType="numberDecimal" />
-
-        <TextView
-            android:id="@+id/txtHintsSmontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="A=90€  B=120€  C=150€  D=200€ (modificabile)"
-            android:textSize="12sp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp" />
-
-        <!-- ===================== -->
-        <!-- RIMONTAGGIO -->
-        <!-- ===================== -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Rimontaggio"
-            android:textStyle="bold"
-            android:paddingTop="12dp"
-            android:paddingBottom="8dp" />
-
-        <CheckBox
-            android:id="@+id/chkRimontaggio"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Includi rimontaggio" />
-
-        <Spinner
-            android:id="@+id/spnCatRimontaggio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:enabled="false" />
+            android:hint="Tecnico" />
 
         <EditText
-            android:id="@+id/edtRimontaggioEuro"
+            android:id="@+id/edtData"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
-            android:hint="€ Rimontaggio"
-            android:inputType="numberDecimal" />
+            android:hint="Data (gg/mm/aaaa)" />
 
+        <EditText
+            android:id="@+id/edtMarca"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Marca" />
+
+        <EditText
+            android:id="@+id/edtModello"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Modello" />
+
+        <EditText
+            android:id="@+id/edtTargaTelaio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Targa o Telaio" />
+
+        <!-- SELEZIONE PANNELLI -->
         <TextView
-            android:id="@+id/txtHintsRimontaggio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="A=90€  B=120€  C=150€  D=200€ (modificabile)"
-            android:textSize="12sp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp" />
+            android:text="Seleziona pannelli"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
 
-        <!-- ===================== -->
-        <!-- PANNELLI AUTO -->
-        <!-- ===================== -->
+        <LinearLayout
+            android:id="@+id/panelCatalogContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
 
+        <!-- PANNELLI SELEZIONATI -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pannelli auto"
+            android:text="Pannelli selezionati"
             android:textStyle="bold"
             android:textSize="18sp"
             android:paddingTop="16dp"
@@ -119,10 +86,81 @@
             android:layout_height="wrap_content"
             android:orientation="vertical" />
 
-        <!-- ===================== -->
-        <!-- PREZZO -->
-        <!-- ===================== -->
+        <!-- SMONTAGGIO / RIMONTAGGIO -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Smontaggio / Rimontaggio"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
 
+        <!-- SMONTAGGIO -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/chkSmontaggio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Smontaggio" />
+
+            <Spinner
+                android:id="@+id/spnCatSmontaggio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false" />
+
+            <EditText
+                android:id="@+id/edtSmontaggioEuro"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:hint="€"
+                android:inputType="numberDecimal"
+                android:enabled="false" />
+        </LinearLayout>
+
+        <!-- RIMONTAGGIO -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/chkRimontaggio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rimontaggio" />
+
+            <Spinner
+                android:id="@+id/spnCatRimontaggio"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false" />
+
+            <EditText
+                android:id="@+id/edtRimontaggioEuro"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:hint="€"
+                android:inputType="numberDecimal"
+                android:enabled="false" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtHintSmontaggio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="A=90€  B=120€  C=150€  D=200€ (modificabile)"
+            android:textSize="12sp"
+            android:paddingTop="4dp" />
+
+        <!-- PREZZO -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -135,22 +173,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Totale consigliato: 0 €"
-            android:textSize="18sp"
-            android:paddingTop="6dp" />
+            android:textSize="18sp" />
 
-        <EditText
-            android:id="@+id/edtPrezzoReale"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Prezzo reale €"
-            android:inputType="numberDecimal" />
-
-        <TextView
-            android:id="@+id/txtScontoEffettivo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sconto effettivo: 0%"
-            android:paddingTop="6dp" />
-
-    </LinearLayout>
-</ScrollView>
+        <Edit
